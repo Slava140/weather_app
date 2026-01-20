@@ -25,19 +25,50 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.arrow_drop_up_rounded), label: 'Add'),
-          BottomNavigationBarItem(icon: Icon(Icons.arrow_drop_down_rounded), label: 'Sub'),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Караганда',
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 24
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.map_outlined),
+                    onPressed: () {},
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.settings_outlined),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Text(
+            'Пятница, 13 июня',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+            ),
+          ),
+          Text(
+            '22°C',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 96,
+            ),
+          ),
+
         ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
       ),
     );
   }
