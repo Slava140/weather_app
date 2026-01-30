@@ -3,6 +3,8 @@
 ### Группа: 11-ВТИ-23
 Ссылка на макет: https://www.figma.com/design/rYeHOMmyrtSZcejTMVvlg0/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%BE%D0%B3%D0%BE%D0%B4%D1%8B?node-id=0-1&t=JHFp3ptsT8K1IYUN-1
 
+https://drive.google.com/drive/folders/1T6yXiFjcbmCRE3nl3cEtzcqwkI8FfqoA?usp=sharing
+
 # Для чего?
 приложение создано, чтобы давать точный прогноз погоды без лишнего шума. Никаких лишних графиков, всплывающих окон и информационного мусора — только то, что действительно нужно здесь и сейчас.
 
