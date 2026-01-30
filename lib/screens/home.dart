@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sem2/models/weather.dart';
+import 'package:sem2/utils/weather.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -8,6 +10,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late Future<WeatherResponse> futureWeather;
+
+  @override
+  void initState() {
+    super.initState();
+    futureWeather = fetchWeather(
+      '8672369e1dbd452385640544262701',
+      'Караганда'
+    );
+    // print(futureWeather.current.tempC);
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,12 +64,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 18,
                   ),
                 ),
-                Text(
-                  '22°C',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 96,
-                  ),
+                FutureBuilder<WeatherResponse>(
+                    future: futureWeather,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text('${snapshot.error}');
+                      } else if (snapshot.hasData) {
+                        return Text(
+                          snapshot.data!.current.tempC.toInt().toString(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 96,
+                          ),
+                        );
+                      } else {
+                        return Text('Нет данных');
+                      }
+                    }
                 ),
               ],
             ),
@@ -62,11 +90,24 @@ class _HomeScreenState extends State<HomeScreen> {
               Icons.cloud_outlined,
               size: 128,
             ),
-            Text(
-              'Слабый дождь',
-              style: TextStyle(
-                  fontSize: 18
-              ),
+            FutureBuilder<WeatherResponse>(
+                future: futureWeather,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('${snapshot.error}');
+                  } else if (snapshot.hasData) {
+                    return Text(
+                      snapshot.data!.current.condition.text,
+                      style: TextStyle(
+                          fontSize: 18
+                      ),
+                    );
+                  } else {
+                    return Text('Нет данных');
+                  }
+                }
             ),
             SizedBox(height: 48),
             TextButton(
