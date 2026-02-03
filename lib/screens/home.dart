@@ -3,9 +3,32 @@ import 'package:sem2/models/weather.dart';
 import 'package:sem2/utils/utils.dart';
 
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final Future<WeatherResponse> futureWeather;
-  const HomeScreen({super.key, required this.futureWeather});
+  HomeScreen({super.key, required this.futureWeather});
+  @override
+  HomeScreenState createState() => HomeScreenState(futureWeather: futureWeather);
+}
+
+class HomeScreenState extends State<HomeScreen> {
+  final Future<WeatherResponse> futureWeather;
+  final PreferencesService prefs = PreferencesService();
+  Future<String?>? futureLoggedInLogin = null;
+  bool _loaded = false;
+
+  HomeScreenState({required this.futureWeather});
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_loaded) {
+      setState(() {
+        futureLoggedInLogin = prefs.getLoggedInLogin();
+      });
+      _loaded = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +47,20 @@ class HomeScreen extends StatelessWidget {
                         fontSize: 24
                     ),
                   ),
+                  FutureBuilder(
+                      future: futureLoggedInLogin,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text('${snapshot.error}');
+                        } else if (snapshot.hasData) {
+                          return Text(snapshot.data.toString());
+                        } else {
+                          return Text('');
+                        }
+                      }
+                  ),
                   Row(
                     children: [
                       IconButton(
@@ -31,8 +68,12 @@ class HomeScreen extends StatelessWidget {
                         onPressed: () {},
                       ),
                       IconButton(
-                        icon: Icon(Icons.settings_outlined),
-                        onPressed: () {},
+                        icon: Icon(Icons.account_circle_outlined),
+                        onPressed: () {
+                          Navigator.pushNamed(
+                              context, '/login'
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -106,6 +147,7 @@ class HomeScreen extends StatelessWidget {
               SizedBox(height: 48),
               TextButton(
                   onPressed: () => {
+
                     Navigator.pushNamed(
                         context, '/details'
                     )

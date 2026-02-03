@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sem2/models/weather.dart';
+import 'package:sem2/screens/login.dart';
+import 'package:sem2/screens/registration.dart';
 import 'package:sem2/utils/utils.dart';
 import 'package:sem2/utils/weather.dart';
 
@@ -16,18 +18,22 @@ void main() async {
   final weatherController = WeatherController(prefsService);
   await weatherController.load();
 
+  String? loggedInLogin = await prefsService.getLoggedInLogin();
+  bool isLoggedIn = loggedInLogin != null;
   initializeDateFormatting('ru', null);
 
   runApp(
       ChangeNotifierProvider.value(
         value: weatherController,
-        child: const JoraApp(),
+        child: JoraApp(isLoggedIn: isLoggedIn),
       )
   );
 }
 
 class JoraApp extends StatelessWidget {
-  const JoraApp({super.key});
+  final bool isLoggedIn;
+
+  const JoraApp({super.key, required this.isLoggedIn});
 
   // This widget is the root of your application.
   @override
@@ -40,10 +46,12 @@ class JoraApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.highContrastDark()
       ),
-      initialRoute: '/',
+      initialRoute: isLoggedIn ? '/' : '/login',
       routes: {
         '/': (context) => HomeScreen(futureWeather: futureWeather),
-        '/details': (context) => DetailsScreen(futureWeather: futureWeather)
+        '/details': (context) => DetailsScreen(futureWeather: futureWeather),
+        '/login': (context) => LoginScreen(),
+        '/register': (context) => RegistrationScreen(),
       },
       // home: const HomeScreen(),
 
