@@ -1,16 +1,30 @@
-import 'dart:io';
-
-import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sem2/models/weather.dart';
 
 class WeatherNotificationService {
-  static const MethodChannel _channel = MethodChannel('weather_notifications');
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
-  Future<void> init() async {}
+  Future<void> init() async {
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings settings =
+        InitializationSettings(android: androidSettings);
+
+    await _notificationsPlugin.initialize(settings: settings);
+
+    final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
+        _notificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidPlugin?.requestNotificationsPermission();
+  }
 
   Future<void> sendWeatherAlerts(WeatherResponse weather) async {
     if (weather.current.tempC >= 30) {
       await _showNotification(
+        1,
         'Жаркая погода',
         'Сейчас ${weather.current.tempC.toInt()}°C. Пейте больше воды и избегайте солнца.',
       );
@@ -18,22 +32,31 @@ class WeatherNotificationService {
 
     if (weather.current.windKph >= 35) {
       await _showNotification(
+        2,
         'Сильный ветер',
         'Скорость ветра ${weather.current.windKph.toInt()} км/ч. Будьте осторожны на улице.',
       );
     }
   }
 
-  Future<void> _showNotification(String title, String body) async {
-    if (!Platform.isAndroid) {
-      return;
-    }
+  Future<void> _showNotification(int id, String title, String body) async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'weather_alerts_channel',
+      'Погодные уведомления',
+      channelDescription: 'Уведомления о погодных изменениях',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
 
-    try {
-      await _channel.invokeMethod('showNotification', {
-        'title': title,
-        'body': body,
-      });
-    } catch (_) {}
+    const NotificationDetails details =
+        NotificationDetails(android: androidDetails);
+
+    await _notificationsPlugin.show(
+        id:id,
+        title: title,
+        body: body,
+        notificationDetails: details
+    );
   }
 }
