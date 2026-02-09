@@ -12,7 +12,7 @@ class WeatherNotificationService {
     const InitializationSettings settings =
         InitializationSettings(android: androidSettings);
 
-    await _notificationsPlugin.initialize(settings);
+    await _notificationsPlugin.initialize(settings: settings);
 
     final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
         _notificationsPlugin.resolvePlatformSpecificImplementation<
@@ -52,6 +52,11 @@ class WeatherNotificationService {
     const NotificationDetails details =
         NotificationDetails(android: androidDetails);
 
-    await _notificationsPlugin.show(id, title, body, details);
+    await _notificationsPlugin.show(
+        id:id,
+        title: title,
+        body: body,
+        notificationDetails: details
+    );
   }
 }
