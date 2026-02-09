@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sem2/models/weather.dart';
 import 'package:sem2/utils/utils.dart';
 
+import '../utils/notifications.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final Future<WeatherResponse> futureWeather;
@@ -32,6 +34,8 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final notificationsService = WeatherNotificationService();
+    notificationsService.init();
     return Scaffold(
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
