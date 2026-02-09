@@ -7,6 +7,7 @@ import 'package:sem2/screens/login.dart';
 import 'package:sem2/screens/registration.dart';
 import 'package:sem2/utils/utils.dart';
 import 'package:sem2/utils/weather.dart';
+import 'package:sem2/utils/notifications.dart';
 
 import 'screens/home.dart';
 import 'screens/details.dart';
@@ -16,7 +17,14 @@ void main() async {
 
   final prefsService = PreferencesService();
   final weatherController = WeatherController(prefsService);
+  final notificationsService = WeatherNotificationService();
   await weatherController.load();
+  await notificationsService.init();
+
+  try {
+    final weather = await fetchWeather(weatherController.city);
+    await notificationsService.sendWeatherAlerts(weather);
+  } catch (_) {}
 
   String? loggedInLogin = await prefsService.getLoggedInLogin();
   bool isLoggedIn = loggedInLogin != null;
