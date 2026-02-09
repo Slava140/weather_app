@@ -53,7 +53,6 @@ class JoraApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegistrationScreen(),
       },
-      // home: const HomeScreen(),
 
     );
   }

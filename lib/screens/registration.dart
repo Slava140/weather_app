@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sem2/utils/utils.dart';
 
-import '../models/profile.dart';
-
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({Key? key}) : super(key: key);
 
