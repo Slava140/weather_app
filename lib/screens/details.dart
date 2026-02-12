@@ -13,107 +13,79 @@ class DetailsScreen extends StatelessWidget {
     final weatherFuture = fetchWeather(controller.city);
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(controller.city, overflow: TextOverflow.ellipsis),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.travel_explore_rounded),
+            onPressed: () => Navigator.pushNamed(context, '/search'),
+          ),
+        ],
+      ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        padding: const EdgeInsets.all(24),
+        child: FutureBuilder<WeatherResponse>(
+          future: weatherFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('${snapshot.error}'));
+            }
+
+            if (!snapshot.hasData) {
+              return const Center(child: Text('Нет данных'));
+            }
+
+            final weather = snapshot.data!;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back),
-                    ),
-                    Text(
-                      controller.city,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 24),
-                    ),
-                  ],
+                _DetailsRow(
+                  label: 'Скорость ветра',
+                  value: '${(weather.current.windKph * 1000 / 3600).toInt()} м/с',
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.map_outlined),
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/search');
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.settings_outlined),
-                      onPressed: () {},
-                    ),
-                  ],
+                _DetailsRow(
+                  label: 'Влажность',
+                  value: '${weather.current.humidity.toInt()}%',
+                ),
+                _DetailsRow(
+                  label: 'Видимость',
+                  value: '${weather.current.visKm.toInt()} км',
+                ),
+                _DetailsRow(
+                  label: 'Давление',
+                  value:
+                      '${(weather.current.pressureMb * 0.750062).toInt()} мм.рт.ст',
                 ),
               ],
-            ),
-            const SizedBox(height: 96),
-            FutureBuilder<WeatherResponse>(
-              future: weatherFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text('${snapshot.error}');
-                } else if (snapshot.hasData) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Скорость ветра', style: TextStyle(fontSize: 16)),
-                          Text(
-                            '${(snapshot.data!.current.windKph * 1000 / 3600).toInt()} м/с',
-                            style: const TextStyle(fontSize: 18),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Влажность', style: TextStyle(fontSize: 16)),
-                          Text(
-                            '${snapshot.data!.current.humidity.toInt()}%',
-                            style: const TextStyle(fontSize: 18),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Видимость', style: TextStyle(fontSize: 16)),
-                          Text(
-                            '${snapshot.data!.current.visKm.toInt()} Км',
-                            style: const TextStyle(fontSize: 18),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Давление', style: TextStyle(fontSize: 16)),
-                          Text(
-                            '${(snapshot.data!.current.pressureMb * 0.750062).toInt()} мм.рт.ст',
-                            style: const TextStyle(fontSize: 18),
-                          )
-                        ],
-                      ),
-                    ],
-                  );
-                } else {
-                  return const Text('Нет данных');
-                }
-              },
-            ),
-          ],
+            );
+          },
         ),
+      ),
+    );
+  }
+}
+
+class _DetailsRow extends StatelessWidget {
+  const _DetailsRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 16)),
+          Text(value, style: const TextStyle(fontSize: 20)),
+        ],
       ),
     );
   }
