@@ -69,7 +69,9 @@ class HomeScreenState extends State<HomeScreen> {
                     children: [
                       IconButton(
                         icon: Icon(Icons.map_outlined),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/search');
+                        },
                       ),
                       IconButton(
                         icon: Icon(Icons.account_circle_outlined),

@@ -11,6 +11,7 @@ import 'package:sem2/utils/notifications.dart';
 
 import 'screens/home.dart';
 import 'screens/details.dart';
+import 'screens/search.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +61,7 @@ class JoraApp extends StatelessWidget {
         '/details': (context) => DetailsScreen(futureWeather: futureWeather),
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegistrationScreen(),
+        '/search': (context) => const SearchScreen(),
       },
 
     );
