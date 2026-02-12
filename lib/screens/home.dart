@@ -15,18 +15,39 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final PreferencesService prefs = PreferencesService();
-  Future<String?>? futureLoggedInLogin;
-  bool _loaded = false;
+  String? _loggedInLogin;
+  bool _isProfileLoading = true;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
+    super.initState();
+    _loadLoggedInLogin();
+  }
 
-    if (!_loaded) {
+  Future<void> _loadLoggedInLogin() async {
+    final login = await prefs.getLoggedInLogin();
+    if (mounted) {
       setState(() {
-        futureLoggedInLogin = prefs.getLoggedInLogin();
+        _loggedInLogin = login;
+        _isProfileLoading = false;
       });
-      _loaded = true;
+    }
+  }
+
+  Future<void> _handleProfileAction(_ProfileMenuAction action) async {
+    if (action == _ProfileMenuAction.logIn) {
+      await Navigator.pushNamed(context, '/login');
+      await _loadLoggedInLogin();
+      return;
+    }
+
+    if (action == _ProfileMenuAction.logOut) {
+      await prefs.removeLoggedInLogin();
+      await _loadLoggedInLogin();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Вы вышли из профиля')),
+      );
     }
   }
 
@@ -51,20 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 24),
                 ),
-                FutureBuilder(
-                  future: futureLoggedInLogin,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
-                      return Text('${snapshot.error}');
-                    } else if (snapshot.hasData) {
-                      return Text(snapshot.data.toString());
-                    } else {
-                      return const Text('');
-                    }
-                  },
-                ),
                 Row(
                   children: [
                     IconButton(
@@ -73,10 +80,43 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.pushNamed(context, '/search');
                       },
                     ),
-                    IconButton(
+                    PopupMenuButton<_ProfileMenuAction>(
                       icon: const Icon(Icons.account_circle_outlined),
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/login');
+                      onSelected: _handleProfileAction,
+                      itemBuilder: (context) {
+                        if (_isProfileLoading) {
+                          return const [
+                            PopupMenuItem<_ProfileMenuAction>(
+                              enabled: false,
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                          ];
+                        }
+
+                        if (_loggedInLogin != null) {
+                          return [
+                            PopupMenuItem<_ProfileMenuAction>(
+                              enabled: false,
+                              child: Text(_loggedInLogin!),
+                            ),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem<_ProfileMenuAction>(
+                              value: _ProfileMenuAction.logOut,
+                              child: Text('Выйти...'),
+                            ),
+                          ];
+                        }
+
+                        return const [
+                          PopupMenuItem<_ProfileMenuAction>(
+                            value: _ProfileMenuAction.logIn,
+                            child: Text('Войти...'),
+                          ),
+                        ];
                       },
                     ),
                   ],
@@ -162,3 +202,5 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+enum _ProfileMenuAction { logIn, logOut }

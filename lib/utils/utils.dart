@@ -39,6 +39,11 @@ class PreferencesService {
     await prefs.setString(_loggedInProfileLogin, login);
   }
 
+  Future<void> removeLoggedInLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_loggedInProfileLogin);
+  }
+
   Future<String?> getLoggedInLogin() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_loggedInProfileLogin);
