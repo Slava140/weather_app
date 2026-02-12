@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sem2/models/weather.dart';
+import 'package:sem2/utils/notifications.dart';
 import 'package:sem2/utils/utils.dart';
 import 'package:sem2/utils/weather.dart';
-
-import '../utils/notifications.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,24 +13,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final PreferencesService prefs = PreferencesService();
+  final PreferencesService _prefs = PreferencesService();
   String? _loggedInLogin;
   bool _isProfileLoading = true;
 
   @override
   void initState() {
     super.initState();
+    WeatherNotificationService().init();
     _loadLoggedInLogin();
   }
 
   Future<void> _loadLoggedInLogin() async {
-    final login = await prefs.getLoggedInLogin();
-    if (mounted) {
-      setState(() {
-        _loggedInLogin = login;
-        _isProfileLoading = false;
-      });
-    }
+    final login = await _prefs.getLoggedInLogin();
+    if (!mounted) return;
+
+    setState(() {
+      _loggedInLogin = login;
+      _isProfileLoading = false;
+    });
   }
 
   Future<void> _handleProfileAction(_ProfileMenuAction action) async {
@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (action == _ProfileMenuAction.logOut) {
-      await prefs.removeLoggedInLogin();
+      await _prefs.removeLoggedInLogin();
       await _loadLoggedInLogin();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,152 +51,118 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String _hiResIconUrl(String iconUrl) {
+    final normalized = iconUrl.startsWith('//') ? 'https:$iconUrl' : iconUrl;
+    return normalized.replaceFirst('/64x64/', '/128x128/');
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<WeatherController>();
-    final notificationsService = WeatherNotificationService();
-    notificationsService.init();
-
     final weatherFuture = fetchWeather(controller.city);
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(controller.city, overflow: TextOverflow.ellipsis),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.travel_explore_rounded),
+            onPressed: () => Navigator.pushNamed(context, '/search'),
+          ),
+          PopupMenuButton<_ProfileMenuAction>(
+            icon: const Icon(Icons.account_circle_rounded),
+            onSelected: _handleProfileAction,
+            itemBuilder: (context) {
+              if (_isProfileLoading) {
+                return const [
+                  PopupMenuItem<_ProfileMenuAction>(
+                    enabled: false,
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                ];
+              }
+
+              if (_loggedInLogin != null) {
+                return [
+                  PopupMenuItem<_ProfileMenuAction>(
+                    enabled: false,
+                    child: Text(_loggedInLogin!),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<_ProfileMenuAction>(
+                    value: _ProfileMenuAction.logOut,
+                    child: Text('Выйти...'),
+                  ),
+                ];
+              }
+
+              return const [
+                PopupMenuItem<_ProfileMenuAction>(
+                  value: _ProfileMenuAction.logIn,
+                  child: Text('Войти...'),
+                ),
+              ];
+            },
+          ),
+        ],
+      ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  controller.city,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 24),
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.map_outlined),
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/search');
-                      },
-                    ),
-                    PopupMenuButton<_ProfileMenuAction>(
-                      icon: const Icon(Icons.account_circle_outlined),
-                      onSelected: _handleProfileAction,
-                      itemBuilder: (context) {
-                        if (_isProfileLoading) {
-                          return const [
-                            PopupMenuItem<_ProfileMenuAction>(
-                              enabled: false,
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            ),
-                          ];
-                        }
+        padding: const EdgeInsets.all(24),
+        child: FutureBuilder<WeatherResponse>(
+          future: weatherFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                        if (_loggedInLogin != null) {
-                          return [
-                            PopupMenuItem<_ProfileMenuAction>(
-                              enabled: false,
-                              child: Text(_loggedInLogin!),
-                            ),
-                            const PopupMenuDivider(),
-                            const PopupMenuItem<_ProfileMenuAction>(
-                              value: _ProfileMenuAction.logOut,
-                              child: Text('Выйти...'),
-                            ),
-                          ];
-                        }
+            if (snapshot.hasError) {
+              return Center(child: Text('${snapshot.error}'));
+            }
 
-                        return const [
-                          PopupMenuItem<_ProfileMenuAction>(
-                            value: _ProfileMenuAction.logIn,
-                            child: Text('Войти...'),
-                          ),
-                        ];
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 48),
-            Column(
+            if (!snapshot.hasData) {
+              return const Center(child: Text('Нет данных'));
+            }
+
+            final weather = snapshot.data!;
+
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   getFormattedDate(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 18),
                 ),
-                FutureBuilder<WeatherResponse>(
-                  future: weatherFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
-                      return Text('${snapshot.error}');
-                    } else if (snapshot.hasData) {
-                      return Text(
-                        snapshot.data!.current.tempC.toInt().toString(),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 96),
-                      );
-                    } else {
-                      return const Text('Нет данных');
-                    }
-                  },
+                const SizedBox(height: 12),
+                Text(
+                  '${weather.current.tempC.toInt()}°',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 96),
+                ),
+                const SizedBox(height: 8),
+                Image.network(
+                  _hiResIconUrl(weather.current.condition.iconUrl),
+                  width: 128,
+                  height: 128,
+                  filterQuality: FilterQuality.high,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  weather.current.condition.text,
+                  style: const TextStyle(fontSize: 20),
+                ),
+                const SizedBox(height: 40),
+                FilledButton.tonal(
+                  onPressed: () => Navigator.pushNamed(context, '/details'),
+                  child: const Text('Подробнее'),
                 ),
               ],
-            ),
-            FutureBuilder<WeatherResponse>(
-              future: weatherFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text('${snapshot.error}');
-                } else if (snapshot.hasData) {
-                  return Image.network(
-                    'https:${snapshot.data!.current.condition.iconUrl}',
-                    width: 128,
-                    height: 128,
-                  );
-                } else {
-                  return const Text('Нет данных');
-                }
-              },
-            ),
-            FutureBuilder<WeatherResponse>(
-              future: weatherFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text('${snapshot.error}');
-                } else if (snapshot.hasData) {
-                  return Text(
-                    snapshot.data!.current.condition.text,
-                    style: const TextStyle(fontSize: 18),
-                  );
-                } else {
-                  return const Text('Нет данных');
-                }
-              },
-            ),
-            const SizedBox(height: 48),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/details');
-              },
-              child: const Text(
-                'Подробнее',
-                style: TextStyle(fontSize: 24),
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
