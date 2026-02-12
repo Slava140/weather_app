@@ -159,10 +159,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     weather.current.condition.text,
                     style: const TextStyle(fontSize: 20),
                   ),
-                  const SizedBox(height: 40),
-                  FilledButton.tonal(
+                  const SizedBox(height: 128),
+                  TextButton(
                     onPressed: () => Navigator.pushNamed(context, '/details'),
-                    child: const Text('Подробнее'),
+                    child: const Text(
+                      'Подробнее',
+                      style: TextStyle(color: Colors.white70, fontSize: 24),
+                    ),
                   ),
                 ],
               ),
