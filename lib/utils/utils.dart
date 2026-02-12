@@ -55,6 +55,19 @@ class PreferencesService {
     await prefs.setString('${_profileBaseKey}_$login', passwordHash);
   }
 
+  Future<void> removeProfile(String login) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('${_profileBaseKey}_$login');
+  }
+
+  Future<void> clearLoggedInProfileCredentials() async {
+    final login = await getLoggedInLogin();
+    if (login != null) {
+      await removeProfile(login);
+    }
+    await removeLoggedInLogin();
+  }
+
   Future<ProfileOut?> getProfile(String login) async {
     final prefs = await SharedPreferences.getInstance();
     String? passwordHash = prefs.getString('${_profileBaseKey}_$login');
