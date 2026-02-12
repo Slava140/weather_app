@@ -29,9 +29,9 @@ class PreferencesService {
     await prefs.setString(_cityKey, city);
   }
 
-  Future<String> getCity() async {
+  Future<String?> getCity() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_cityKey) ?? 'Караганда';
+    return prefs.getString(_cityKey);
   }
 
   Future<void> setLoggedInLogin(String login) async {
@@ -64,13 +64,20 @@ class PreferencesService {
 class WeatherController extends ChangeNotifier {
   final PreferencesService prefs;
 
-  String _city = 'Караганда';
+  String _city = '';
   String get city => _city;
+  bool get hasCity => _city.isNotEmpty;
 
   WeatherController(this.prefs);
 
   Future<void> load() async {
-    _city = await prefs.getCity();
+    _city = await prefs.getCity() ?? '';
+    notifyListeners();
+  }
+
+  Future<void> setCity(String city) async {
+    _city = city;
+    await prefs.setCity(city);
     notifyListeners();
   }
 }

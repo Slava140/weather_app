@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'package:sem2/utils/utils.dart';
 import 'package:sem2/utils/weather.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -60,6 +62,19 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  Future<void> _onCitySelected(String city) async {
+    final controller = context.read<WeatherController>();
+    await controller.setCity(city);
+
+    if (!mounted) return;
+
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.pushReplacementNamed(context, '/');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,8 +102,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   : ListView.builder(
                       itemCount: _suggestions.length,
                       itemBuilder: (context, index) {
+                        final city = _suggestions[index];
                         return ListTile(
-                          title: Text(_suggestions[index]),
+                          title: Text(city),
+                          onTap: () => _onCitySelected(city),
                         );
                       },
                     ),

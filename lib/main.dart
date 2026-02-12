@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:sem2/models/weather.dart';
 import 'package:sem2/screens/login.dart';
 import 'package:sem2/screens/registration.dart';
 import 'package:sem2/utils/utils.dart';
@@ -23,8 +22,10 @@ void main() async {
   await notificationsService.init();
 
   try {
-    final weather = await fetchWeather(weatherController.city);
-    await notificationsService.sendWeatherAlerts(weather);
+    if (weatherController.hasCity) {
+      final weather = await fetchWeather(weatherController.city);
+      await notificationsService.sendWeatherAlerts(weather);
+    }
   } catch (_) {}
 
   String? loggedInLogin = await prefsService.getLoggedInLogin();
@@ -32,10 +33,10 @@ void main() async {
   initializeDateFormatting('ru', null);
 
   runApp(
-      ChangeNotifierProvider.value(
-        value: weatherController,
-        child: JoraApp(isLoggedIn: isLoggedIn),
-      )
+    ChangeNotifierProvider.value(
+      value: weatherController,
+      child: JoraApp(isLoggedIn: isLoggedIn),
+    ),
   );
 }
 
@@ -44,26 +45,21 @@ class JoraApp extends StatelessWidget {
 
   const JoraApp({super.key, required this.isLoggedIn});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final controller = context.read<WeatherController>();
-    final Future<WeatherResponse> futureWeather = fetchWeather(controller.city);
+    final controller = context.watch<WeatherController>();
 
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.highContrastDark()
-      ),
+      theme: ThemeData(colorScheme: ColorScheme.highContrastDark()),
       initialRoute: isLoggedIn ? '/' : '/login',
       routes: {
-        '/': (context) => HomeScreen(futureWeather: futureWeather),
-        '/details': (context) => DetailsScreen(futureWeather: futureWeather),
-        '/login': (context) => LoginScreen(),
-        '/register': (context) => RegistrationScreen(),
+        '/': (context) => controller.hasCity ? const HomeScreen() : const SearchScreen(),
+        '/details': (context) => controller.hasCity ? const DetailsScreen() : const SearchScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegistrationScreen(),
         '/search': (context) => const SearchScreen(),
       },
-
     );
   }
 }
