@@ -63,6 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: true,
         title: Text(controller.city, overflow: TextOverflow.ellipsis),
         actions: [
           IconButton(
@@ -129,38 +131,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
             final weather = snapshot.data!;
 
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  getFormattedDate(),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  '${weather.current.tempC.toInt()}°',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 96),
-                ),
-                const SizedBox(height: 8),
-                Image.network(
-                  _hiResIconUrl(weather.current.condition.iconUrl),
-                  width: 128,
-                  height: 128,
-                  filterQuality: FilterQuality.high,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  weather.current.condition.text,
-                  style: const TextStyle(fontSize: 20),
-                ),
-                const SizedBox(height: 40),
-                FilledButton.tonal(
-                  onPressed: () => Navigator.pushNamed(context, '/details'),
-                  child: const Text('Подробнее'),
-                ),
-              ],
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    getFormattedDate(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '${weather.current.tempC.toInt()}°',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 96),
+                  ),
+                  const SizedBox(height: 8),
+                  Image.network(
+                    _hiResIconUrl(weather.current.condition.iconUrl),
+                    width: 128,
+                    height: 128,
+                    filterQuality: FilterQuality.high,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    weather.current.condition.text,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(height: 40),
+                  FilledButton.tonal(
+                    onPressed: () => Navigator.pushNamed(context, '/details'),
+                    child: const Text('Подробнее'),
+                  ),
+                ],
+              ),
             );
           },
         ),
