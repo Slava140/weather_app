@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (action == _ProfileMenuAction.logOut) {
-      await prefs.clearLoggedInProfileCredentials();
+      await prefs.removeLoggedInLogin();
       await _loadLoggedInLogin();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
